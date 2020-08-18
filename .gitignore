@@ -1,0 +1,5 @@
+.idea
+vendor
+parser/generated
+gen
+node_modules

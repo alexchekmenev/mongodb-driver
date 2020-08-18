@@ -1,0 +1,5 @@
+1. ONLY_FULL_GROUP_BY - https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_only_full_group_by
+2. Antlr + Javascript - https://habr.com/ru/post/351906/
+3. Обход дерева       - https://habr.com/ru/company/pt/blog/210060/
+4. MongoDB Bi Connector https://docs.mongodb.com/bi-connector/master/
+5. allowDiskUse when $group (if the stage exceeds this limit 100mb      )
