@@ -1,5 +1,5 @@
 .idea
 vendor
-parser/generated
+src/generated
 gen
 node_modules
