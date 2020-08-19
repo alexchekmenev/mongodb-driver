@@ -44,7 +44,10 @@ async function main(input) {
 
     try {
         const db = client.db(dbName)
-        const q = await db.collection(mongoDbPipeline.collectionName).aggregate(mongoDbPipeline.pipeline).toArray()
+        const q = await db.collection(mongoDbPipeline.collectionName)
+            .aggregate(mongoDbPipeline.pipeline, {
+                allowDiskUse: true
+            }).toArray()
         console.log(q)
     } catch (e) {
         console.error(e)
@@ -53,4 +56,4 @@ async function main(input) {
     }
 }
 
-main('SELECT Count(*) as total FROM donors where 1')
+main('SELECT Count(*) as total FROM donors where "Donor Zip" = "245"')

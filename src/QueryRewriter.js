@@ -11,7 +11,7 @@ class QueryRewriter {
         }
 
         const collectionName = rewriteTableName(sqlQuery.from)
-        sqlQuery.where = rewriteExpression(sqlQuery.where)
+        sqlQuery.where = rewriteWhere(sqlQuery.where)
         sqlQuery.group = rewriteGroup(sqlQuery.group)
         sqlQuery.select = rewriteSelect(sqlQuery.select)
 
@@ -38,6 +38,12 @@ function rewriteColumnName(name) {
     return `$${name.columnName.replace(/[$]+/g, '')}`
 }
 
+function rewriteWhere(where) {
+    return {
+        $expr: rewriteExpression(where)
+    }
+}
+
 function rewriteGroup(group) {
     return group.map(e => rewriteGroupByExpression(e))
 }
@@ -47,7 +53,13 @@ function rewriteGroup(group) {
 // }
 
 function rewriteSelect(select) {
-    return select.map(e => rewriteSelectElement(e))
+    return select.map(e => {
+        const rewritten = rewriteSelectElement(e)
+        if (!rewritten.hasOwnProperty('$sum')) {
+            return { $first: rewritten }
+        }
+        return rewritten
+    })
 }
 
 function rewriteOrder(order) {
@@ -59,19 +71,18 @@ function rewriteLimit(limit) {
 }
 
 function rewriteGroupByExpression(expressionWithOrder) {
-    // omit order because of MongoDB does not support ordering in GROUP BY
+    // omit "order" because of MongoDB does not support ordering in GROUP BY
     return rewriteExpression(expressionWithOrder.expression)
 }
 
 // FIXME only simple fields
 function rewriteOrderExpression(expressionWithOrder) {
     // TODO some kind of rewriteSelectElement(...) + calc resulted fields on group stage
-
 }
 
 function rewriteSelectElement(element) {
     if (element.hasOwnProperty('fullColumnName')) {
-        return { $first: rewriteColumnName(element.fullColumnName) }
+        return rewriteColumnName(element.fullColumnName)
     } else if (element.hasOwnProperty('expression')) {
         return rewriteExpression(element.expression)
     } else if (element.hasOwnProperty('functionCall')) {
@@ -91,6 +102,8 @@ function rewriteExpression(expression) {
             return Object.keys(e).reduce((acc, key) => {
                 return {...acc, [key]: recursiveRewrite(e[key])}
             }, {})
+        } else if (typeof e === 'string') {
+            return recursiveRewrite({ columnName: e})
         }
         return e
     }
@@ -139,7 +152,7 @@ function constructMatchStage(where) {
 
 
 function constructGroupStage(group, select, mapper) {
-    const groupIndex = { _id: "$_id" }
+    const groupIndex = { _id: null }
     if (group.length > 0) {
         // TODO
         //  move from _id.* in $project stage
@@ -150,6 +163,9 @@ function constructGroupStage(group, select, mapper) {
     }
     const aggregationFields = select.reduce((acc, e) => {
         const key = getExpressionKey(e)
+        // if (e.type === 'group') {
+        //     return acc
+        // }
         return {...acc, [mapper.get(key).tempId]: e}
     }, {})
     return {
@@ -163,7 +179,11 @@ function constructProjectStage(select, mapper) {
         _id: 0
     }
     mapper.forEach((value) => {
-        stage[value.projectionField] = `$${value.tempId}`
+        if (value.type === 'group') {
+            // stage[value.projectionField] = `$_id.${value.tempId}`
+        } else {
+            stage[value.projectionField] = `$${value.tempId}`
+        }
     })
     return stage
 }

@@ -37,7 +37,12 @@ class Visitor extends BaseVisitor {
      */
 
     visitGroupByItem(ctx) {
-        const expression = this.visit(ctx.expression())
+        let expression = this.visit(ctx.expression())
+        if (typeof expression === 'string') {
+            expression = {
+                columnName: expression
+            }
+        }
         const order = ctx.DESC() ? 'DESC' : 'ASC'
         return { group: [{ expression, order }]}
     }
@@ -91,6 +96,7 @@ class Visitor extends BaseVisitor {
 
     visitOrderByExpression(ctx) {
         const expression = this.visit(ctx.expression())
+        // TODO wrap string by {columnName: ...}
         const order = ctx.DESC() ? 'DESC' : 'ASC'
         return { order: [{ expression, order }]}
     }
