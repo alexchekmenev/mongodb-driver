@@ -1,13 +1,15 @@
 const antlr4 = require('antlr4');
-const Lexer = require('.//generated/MySqlLexer');
-const MySqlParser = require('.//generated/MySqlParser').MySqlParser;
-const Visitor = require('.//Visitor');
-const Stream = require('.//AntlrCaseInsensitiveInputStream');
+const Lexer = require('./generated/MySqlLexer');
+const MySqlParser = require('./generated/MySqlParser').MySqlParser;
+const Visitor = require('./Visitor');
+const Stream = require('./AntlrCaseInsensitiveInputStream');
 
 class QueryParser {
+
     /**
-     * Return MongoDb Aggregation pipeline
-     * @param input
+     * Return parsed SQL query
+     * @param input {string}
+     * @returns {object}
      */
     parse(input) {
         // const chars = new antlr4.InputStream(input)

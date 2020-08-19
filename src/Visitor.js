@@ -1,4 +1,4 @@
-const BaseVisitor = require('./FailingUnsupportedMethodsVisitor');
+const BaseVisitor = require('./BaseVisitor');
 
 class Visitor extends BaseVisitor {
 
@@ -134,7 +134,7 @@ class Visitor extends BaseVisitor {
             } else {
                 throw new Error('Do not support COUNT(DISTINCT functionArgs)')
             }
-            return aggregateExpression ? [ { $sum: aggregateExpression } ] : []
+            return aggregateExpression ? { $sum: aggregateExpression } : null
         } else {
             throw new Error('Do not support other aggregation functions')
         }
@@ -244,11 +244,13 @@ class Visitor extends BaseVisitor {
             if (ctx.dottedId(1)) {
                 throw new Error('Do not support column names with two dot')
             }
+            // return removeQuotes(ctx.dottedId(0).uid().getText())
             return {
                 tableName: removeQuotes(ctx.uid().getText()),
                 columnName: removeQuotes(ctx.dottedId(0).uid().getText())
             }
         }
+        // return removeQuotes(ctx.uid().getText())
         return {
             columnName: removeQuotes(ctx.uid().getText())
         }
@@ -298,7 +300,7 @@ function reduceResult(current, other) {
         select: (current && current.select || []).concat((other && other.select || [])),
         order: (current && current.order || []).concat((other && other.order || [])),
         limit: (current && current.limit) || (other && other.limit) || null,
-        offset: (current && current.offset) || (other && other.offset) || null
+        offset: (current && current.offset) || (other && other.offset) || 0
     }
 }
 

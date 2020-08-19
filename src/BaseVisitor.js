@@ -1,6 +1,6 @@
 const MySqlParserVisitor = require('./generated/MySqlParserVisitor').MySqlParserVisitor;
 
-class FailingUnsupportedMethodsVisitor extends MySqlParserVisitor {
+class BaseVisitor extends MySqlParserVisitor {
 
     // visitChildren(ctx) {
     //     if (!ctx) {
@@ -127,4 +127,4 @@ class FailingUnsupportedMethodsVisitor extends MySqlParserVisitor {
     }
 }
 
-module.exports = FailingUnsupportedMethodsVisitor
+module.exports = BaseVisitor
