@@ -15,7 +15,7 @@ const real =
     '    SELECT\n' +
     '      1 as one, 1 as one2, `Donor City` `donors__donor_city`, `Donor State` `donors__donor_state`, count(*) `donors__count`\n' +
     '    FROM\n' +
-    '      donors AS `donors`\n' +
+    '      donors AS `donors` WHERE 10 < 100\n' +
     '  GROUP BY 1, donors.`Donor City`, 4 ORDER BY 1, 3 DESC LIMIT 10000 []'
 
 // TODO GROUP BY `colunmName`. now it's parsed as constant string
