@@ -11,7 +11,7 @@ class Visitor extends BaseVisitor {
     }
 
     /**
-     * FROM, WHERE [, HAVING]
+     * FROM, WHERE
      */
 
     visitFromClause(ctx) {
@@ -97,6 +97,7 @@ class Visitor extends BaseVisitor {
     visitOrderByExpression(ctx) {
         const expression = this.visit(ctx.expression())
         // TODO wrap string by {columnName: ...}
+        // TODO change to <field_i> if constant i (ref to select element)
         const order = ctx.DESC() ? 'DESC' : 'ASC'
         return { order: [{ expression, order }]}
     }
@@ -140,7 +141,7 @@ class Visitor extends BaseVisitor {
             } else {
                 throw new Error('Do not support COUNT(DISTINCT functionArgs)')
             }
-            return aggregateExpression ? { $sum: aggregateExpression } : null
+            return aggregateExpression ? { $sum: aggregateExpression } : null // TODO always { $sum: ... }, not null
         } else {
             throw new Error('Do not support other aggregation functions')
         }
@@ -230,18 +231,20 @@ class Visitor extends BaseVisitor {
 
     // ! returns constant
     visitConstant(ctx) {
+        let constant
         if (ctx.nullLiteral) {
             if (ctx.NOT()) {
-                return { $not: [null] }
+                constant = { $not: [null] }
             }
-            return null
+            constant = null
         } else if (ctx.stringLiteral()) {
-            return removeQuotes(ctx.stringLiteral().getText())
+            constant = removeQuotes(ctx.stringLiteral().getText())
         } else if (ctx.decimalLiteral()) {
-            return parseInt(ctx.decimalLiteral().getText(), 10)
+            constant = parseInt(ctx.decimalLiteral().getText(), 10)
         } else {
             throw new Error('Do not support other types of constant')
         }
+        return { constant }
     }
 
     // ! returns object
