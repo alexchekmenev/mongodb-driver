@@ -2,7 +2,7 @@ const fs = require('fs');
 const parse = require('csv-parse');
 const MongoClient = require('mongodb').MongoClient;
 
-const dbName = 'cube-js ';
+const dbName = 'cube-js';
 const user = encodeURIComponent('root');
 const password = encodeURIComponent('rootpassword');
 const authMechanism = 'DEFAULT';

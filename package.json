@@ -1,11 +1,11 @@
 {
-  "name": "@cubejs-backend/mysql-driver",
+  "name": "@chekmenev/mongodb-driver",
   "description": "Cube.js MongoDB database driver",
   "author": "Alexander Chekmenev",
   "version": "0.1.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cube-js/cube.js.git",
+    "url": "git+https://github.com/cube-js/cube.js.git",
     "directory": "packages/cubejs-mysql-driver"
   },
   "engines": {
@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@cubejs-backend/query-orchestrator": "^0.19.56",
+    "@cubejs-backend/schema-compiler": "^0.19.61",
     "generic-pool": "^3.6.0",
     "mongodb": "^3.6.0",
     "mysql": "^2.16.0"
@@ -38,5 +39,12 @@
   "license": "Apache-2.0",
   "publishConfig": {
     "access": "public"
+  },
+  "bugs": {
+    "url": "https://github.com/cube-js/cube.js/issues"
+  },
+  "homepage": "https://github.com/cube-js/cube.js#readme",
+  "directories": {
+    "test": "test"
   }
 }
