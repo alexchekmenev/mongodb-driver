@@ -15,7 +15,7 @@ const real =
     '    SELECT\n' +
     '      1 as one, 1 as one2, `Donor City` `donors__donor_city`, `Donor State` `donors__donor_state`, count(*) `donors__count`\n' +
     '    FROM\n' +
-    '      donors AS `donors` WHERE 10 < 100\n' +
+    '       donors AS `donors` WHERE 10 < 100\n' +
     '  GROUP BY 1, donors.`Donor City`, 4 ORDER BY 1, 3 DESC LIMIT 10000 []'
 
 // TODO GROUP BY `colunmName`. now it's parsed as constant string
@@ -50,11 +50,12 @@ async function query(db, input) {
     const mongoDbPipeline = rewriter.rewrite(parsedSqlQuery)
     console.log('MongoDB', JSON.stringify(mongoDbPipeline, null, 2))
 
-    const q = await db.collection(mongoDbPipeline.collectionName)
+    return db.collection(mongoDbPipeline.collectionName)
         .aggregate(mongoDbPipeline.pipeline, {
             allowDiskUse: true
         }).toArray()
-    console.log(q)
+    // console.log('Result: ', JSON.stringify(result, null, 2))
+    // return result
 }
 
 async function test(input) {

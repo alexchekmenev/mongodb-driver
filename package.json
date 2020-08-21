@@ -14,7 +14,7 @@
   "main": "driver/MongoDbDriver.js",
   "scripts": {
     "generate": "chmod +x generate.sh && ./generate.sh",
-    "init": "node src/MongoDbInit.js",
+    "init": "node scripts/MongoDbInit.js",
     "run": "node driver/MongoDbDriver.js",
     "run:parser": "node src/index.js",
     "test": "jest",

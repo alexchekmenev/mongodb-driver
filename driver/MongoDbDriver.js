@@ -55,7 +55,7 @@ class MongoDbDriver extends BaseDriver {
         console.log('[mongodb-driver]: query', query, values)
         await connect(this.client)
         const db = this.client.db(this.config.database)
-        return execQuery(db, query)
+        return execQuery(db, query) // do not support prepared statements
     }
 
     async release() {
@@ -64,7 +64,7 @@ class MongoDbDriver extends BaseDriver {
     }
 
     tablesSchema() {
-        [] // FIXME use sampling
+        return [] // FIXME use sampling
     }
 
     quoteIdentifier(identifier) {

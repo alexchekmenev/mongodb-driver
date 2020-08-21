@@ -36,6 +36,7 @@ async function connect() {
 async function insertRows(client, data) {
     const db = client.db(dbName)
     const collection = db.collection('donors')
+    await collection.drop()
     for (let i = 1; i < data.length; i += 100_000) {
         const docs = data.slice(i, Math.min(i + 100_000, data.length)).map(row => {
             return data[0].reduce((acc, field, index) => {
