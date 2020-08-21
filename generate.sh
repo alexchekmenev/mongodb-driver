@@ -5,7 +5,7 @@ fi
 alias antlr4='java -Xmx500M -cp "$(pwd)/vendor/antlr-4.8-complete.jar:$CLASSPATH" org.antlr.v4.Tool'
 alias grun='java -Xmx500M -cp "$(pwd)/vendor/antlr-4.8-complete.jar:$CLASSPATH" org.antlr.v4.gui.TestRig'
 
-rm -rf parser/generated
+rm -rf src/generated
 
-antlr4 -Dlanguage=JavaScript -o 'parser/generated' -lib 'parser/grammar' \
--visitor -Xexact-output-dir parser/grammar/*.g4
+antlr4 -Dlanguage=JavaScript -o 'src/generated' -lib 'src/grammar' \
+-visitor -Xexact-output-dir src/grammar/*.g4
