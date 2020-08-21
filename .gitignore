@@ -1,6 +1,5 @@
 .idea
 vendor
-src/generated
 gen
 node_modules
 Donors.csv
