@@ -18,6 +18,8 @@ class BaseVisitor extends MySqlParserVisitor {
     //     }
     // }
 
+    // TODO restrict every query type but SELECT ...
+
     /**
      * SELECT
      */
@@ -104,10 +106,6 @@ class BaseVisitor extends MySqlParserVisitor {
 
     visitBinaryExpressionAtom(ctx) {
         throw new Error('Do not support BINARY expression atom')
-    }
-
-    visitNestedExpressionAtom(ctx) {
-        throw new Error('Do not support nested expression atom')
     }
 
     visitNestedRowExpressionAtom(ctx) {

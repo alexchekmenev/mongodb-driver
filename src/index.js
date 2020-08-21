@@ -1,6 +1,5 @@
 const QueryParser = require('./QueryParser')
 const QueryRewriter = require('./QueryRewriter')
-// const MongoClient = require('mongodb').MongoClient;
 
 const input = 'SELECT count(propA) a, Count(*) total, `donors` `donors__donor_state`, lol `donors__count` ' +
     'FROM b, test.donors AS `donors`, a WHERE a = "blabla" OR 1 > 0 GROUP BY 1 ASC, state, COUNT(a) ' +
@@ -17,6 +16,12 @@ const real =
     '    FROM\n' +
     '       donors AS `donors` WHERE 10 < 100\n' +
     '  GROUP BY 1, donors.`Donor City`, 4 ORDER BY 1, 3 DESC LIMIT 10000 []'
+
+const withSegment = 'SELECT\n' +
+    '      `Donor City` `donors__donor_city`, count(*) `donors__count`\n' +
+    '    FROM\n' +
+    '      donors AS `donors`\n' +
+    '  WHERE (`donors`."Donor State" = \'Illinois\') GROUP BY 1 ORDER BY 2 DESC LIMIT 10000'
 
 // TODO GROUP BY `colunmName`. now it's parsed as constant string
 // TODO ORDER BY `colunmName` and alias (uid). now it's parsed as constant string
@@ -68,7 +73,7 @@ async function test(input) {
     console.log('MongoDB', JSON.stringify(mongoDbPipeline, null, 2))
 }
 
-test(real)
+test(withSegment)
 
 module.exports = query
 

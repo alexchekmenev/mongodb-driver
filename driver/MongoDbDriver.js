@@ -3,10 +3,12 @@ const genericPool = require('generic-pool');
 const { promisify } = require('util');
 const crypto = require('crypto');
 
-const MongoClient = require('mongodb').MongoClient;
+const {MongoClient, Logger } = require('mongodb');
 const BaseDriver = require('@cubejs-backend/query-orchestrator/driver/BaseDriver');
 const execQuery = require('../src/index')
 const MysqlQuery = require('@cubejs-backend/schema-compiler/adapter/MysqlQuery');
+
+Logger.setLevel("error");
 
 // const GenericTypeToMySql = {
 //     string: 'varchar(255) CHARACTER SET utf8mb4',
@@ -43,7 +45,7 @@ class MongoDbDriver extends BaseDriver {
         };
         const url = `mongodb://${this.config.user}:${this.config.password}@${this.config.host}:${this.config.port}/${this.config.database}?authSource=admin`;
         const poolSize = process.env.CUBEJS_DB_MAX_POOL && parseInt(process.env.CUBEJS_DB_MAX_POOL, 10) || 5
-        this.client = new MongoClient(url)
+        this.client = new MongoClient(url, { useUnifiedTopology: true } )
     }
 
     async testConnection() {

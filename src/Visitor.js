@@ -96,8 +96,6 @@ class Visitor extends BaseVisitor {
 
     visitOrderByExpression(ctx) {
         const expression = this.visit(ctx.expression())
-        // TODO wrap string by {columnName: ...}
-        // TODO change to <field_i> if constant i (ref to select element)
         const order = ctx.DESC() ? 'DESC' : 'ASC'
         return { order: [{ expression, order }]}
     }
@@ -141,7 +139,7 @@ class Visitor extends BaseVisitor {
             } else {
                 throw new Error('Do not support COUNT(DISTINCT functionArgs)')
             }
-            return aggregateExpression ? { $sum: aggregateExpression } : null // TODO always { $sum: ... }, not null
+            return { $sum: aggregateExpression }
         } else {
             throw new Error('Do not support other aggregation functions')
         }
@@ -215,6 +213,11 @@ class Visitor extends BaseVisitor {
         return this.visit(ctx.functionCall())
     }
 
+    visitNestedExpressionAtom(ctx) {
+        // throw new Error('Do not support nested expression atom')
+        return this.visit(ctx.expression())
+    }
+
     visitBitExpressionAtom(ctx) {
         // TODO ctx.bitOperator()
         throw new Error('Not implemented')
@@ -253,13 +256,11 @@ class Visitor extends BaseVisitor {
             if (ctx.dottedId(1)) {
                 throw new Error('Do not support column names with two dot')
             }
-            // return removeQuotes(ctx.dottedId(0).uid().getText())
             return {
                 tableName: removeQuotes(ctx.uid().getText()),
                 columnName: removeQuotes(ctx.dottedId(0).uid().getText())
             }
         }
-        // return removeQuotes(ctx.uid().getText())
         return {
             columnName: removeQuotes(ctx.uid().getText())
         }
@@ -287,7 +288,7 @@ class Visitor extends BaseVisitor {
         } else if (ctx.OR() || ctx.BIT_OR_OP(0) && ctx.BIT_OR_OP(1)) {
             return "$or"
         }
-        throw new Error('Do not support logical operator')
+        throw new Error('Do not support logical operator: ' + ctx ? ctx.getText() : '...')
     }
 
     visitBitOperator(ctx) {

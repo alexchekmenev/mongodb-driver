@@ -17,31 +17,33 @@ class QueryRewriter {
         }
 
         const collectionName = rewriteTableName(sqlQuery.from)
+
+        // pipeline stages order according to - https://docs.mongodb.com/manual/core/aggregation-pipeline-optimization/
+        const pipeline = []
+
+        /* $match stage */
+
         const matchStage = rewriteWhere(sqlQuery.where)
+        if (matchStage) {
+            pipeline.push({ $match: matchStage })
+        }
 
-        const hashMap = new Map()
-        const selectContainer = rewriteSelect(sqlQuery.select, hashMap)
-        // console.log('selectContainer', selectContainer.entries())
-        const groupContainer = rewriteGroup(sqlQuery.group, hashMap, selectContainer)
-        // console.log('groupContainer', groupContainer.entries())
-        const orderContainer = rewriteOrder(sqlQuery.order, hashMap, selectContainer)
-        // console.log('orderContainer', orderContainer.entries())
-        const {
-            groupStage,
-            projectStage,
-            sortStage
-        } = construct(selectContainer, groupContainer, orderContainer)
+        /* $group + $project + $sort stages */
 
-        // TODO https://docs.mongodb.com/manual/core/aggregation-pipeline-optimization/
+        const elementsByHash = new Map()
+        const selectContainer = rewriteSelect(sqlQuery.select, elementsByHash)
+        const groupContainer = rewriteGroup(sqlQuery.group, elementsByHash, selectContainer)
+        const orderContainer = rewriteOrder(sqlQuery.order, elementsByHash, selectContainer)
+        const { groupStage, projectStage, sortStage} = construct(selectContainer, groupContainer, orderContainer)
+
         // TODO switch $project and $sort stage
-        const pipeline = [
-            { $match: matchStage },
-            { $group: groupStage },
-            { $project: projectStage },
-        ]
+        pipeline.push({ $group: groupStage }, { $project: projectStage })
         if (sortStage) {
             pipeline.push({ $sort: sortStage })
         }
+
+        /* $skip + $limit stages */
+
         if (sqlQuery.offset) {
             pipeline.push({ $skip: sqlQuery.offset })
         }
@@ -52,8 +54,6 @@ class QueryRewriter {
         return { collectionName, pipeline }
     }
 }
-
-/* Rewriting functions */
 
 function rewriteTableName(name) {
     return name.replace(/[.\s$]+/g, '_')
