@@ -8,8 +8,10 @@ const password = encodeURIComponent('rootpassword');
 const authMechanism = 'DEFAULT';
 const url = `mongodb://${user}:${password}@localhost:27017/?authMechanism=${authMechanism}`;
 
+// TODO check dataset file exists
+
 const csvData=[];
-fs.createReadStream('./Donors.csv')
+fs.createReadStream('./data/Donors.csv')
     .pipe(parse({delimiter: ','}))
     .on('data', function(csvrow) {
         csvData.push(csvrow);

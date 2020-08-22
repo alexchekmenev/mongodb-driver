@@ -14,10 +14,10 @@
   "main": "driver/MongoDbDriver.js",
   "scripts": {
     "generate": "chmod +x generate.sh && ./generate.sh",
-    "init": "node scripts/MongoDbInit.js",
     "run": "node driver/MongoDbDriver.js",
-    "run:parser": "node src/index.js",
-    "test": "jest",
+    "test": "yarn lint && yarn test:unit && yarn test:e2e",
+    "test:unit": "jest",
+    "test:e2e": "jest",
     "lint": "eslint driver/*.js src/*.js test/*.js"
   },
   "dependencies": {

@@ -2,11 +2,13 @@
 const { GenericContainer } = require("testcontainers");
 const MySqlDriver = require('../driver/MySqlDriver');
 
-describe('MySqlDriver', () => {
+describe('MongoDbDriver', () => {
   let container;
   let mySqlDriver;
 
   jest.setTimeout(50000);
+
+  // TODO populate databases + create indexes
 
   beforeAll(async () => {
     if (!process.env.TEST_LOCAL) {

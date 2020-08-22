@@ -2,4 +2,5 @@
 vendor
 gen
 node_modules
-Donors.csv
+src/generated
+data/Donors.csv

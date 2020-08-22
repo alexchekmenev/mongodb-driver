@@ -1,16 +1,10 @@
-<p align="center"><a href="https://cube.dev"><img src="https://i.imgur.com/zYHXm4o.png" alt="Cube.js" width="300px"></a></p>
+# Cube.js MongoDB Database Driver
 
-[Website](https://cube.dev) • [Docs](https://cube.dev/docs) • [Blog](https://cube.dev/blog) • [Slack](https://slack.cube.dev) • [Twitter](https://twitter.com/thecubejs)
+Pure Javascript SQL to Nosql Cube.js driver for MongoDB. Driver processes incoming SQL queries and convert them to corresponding native Nosql queries for the target database.
 
-[![npm version](https://badge.fury.io/js/%40cubejs-backend%2Fserver.svg)](https://badge.fury.io/js/%40cubejs-backend%2Fserver)
-[![CircleCI](https://circleci.com/gh/cube-js/cube.js.svg?style=shield)](https://circleci.com/gh/cube-js/cube.js)
+# Local testing
 
-# Cube.js MySQL Database Driver
-
-Pure Javascript MySQL driver.
-
-[Learn more](https://github.com/cube-js/cube.js#getting-started)
-
-### License
-
-Cube.js MySQL Database Driver is [Apache 2.0 licensed](./LICENSE).
+1. Download [dataset](https://www.kaggle.com/hanselhansel/donorschoose?select=Donors.csv) and put in into "data" directory in your project root
+2. run `docker-compose up -d` to deploy local databases
+3. run `yarn generate` to generate JavaScript MySQL parser, lexer and visitor classes
+4. run `yarn test`

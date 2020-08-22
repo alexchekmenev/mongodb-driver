@@ -152,7 +152,7 @@ class Visitor extends BaseVisitor {
         } else if (ctx.fullColumnName()) {
             return this.visit(ctx.fullColumnName())
         } else if (ctx.functionCall()) {
-            if (hasFunctionCallInStack(ctx)) {
+            if (hasFunctionCallInStack(ctx)) { // TODO remove
                 throw new Error('Do not support recursive function calls')
             }
             return this.visit(ctx.functionCall())

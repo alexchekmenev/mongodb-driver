@@ -4,7 +4,7 @@ module.exports = {
 }
 
 function rewriteColumnName(name) {
-    return `$${name.columnName.replace(/[$]+/g, '')}`
+    return `$${name.columnName.replace(/[$]+/g, '_')}`
 }
 
 function rewriteExpression(expression) {
