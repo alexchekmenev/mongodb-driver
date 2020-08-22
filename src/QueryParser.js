@@ -1,8 +1,8 @@
 const antlr4 = require('antlr4');
 const Lexer = require('./generated/MySqlLexer');
-const MySqlParser = require('./generated/MySqlParser').MySqlParser;
+const { MySqlParser } = require('./generated/MySqlParser');
 const Visitor = require('./Visitor');
-const Stream = require('./AntlrCaseInsensitiveInputStream');
+const { AntlrCaseInsensitiveInputStream } = require('./AntlrCaseInsensitiveInputStream');
 
 class QueryParser {
 
@@ -12,15 +12,11 @@ class QueryParser {
      * @returns {object}
      */
     parse(input) {
-        // const chars = new antlr4.InputStream(input)
-        const chars = new Stream(input, false)
+        const chars = new AntlrCaseInsensitiveInputStream(input)
         const lexer = new Lexer.MySqlLexer(chars)
-
         const tokens = new antlr4.CommonTokenStream(lexer)
         const parser = new MySqlParser(tokens)
         const parseTree = parser.sqlStatements()
-
-        // console.log(parseTree.toStringTree(src.ruleNames))
 
         return parseTree.accept(new Visitor())
     }

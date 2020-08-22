@@ -1,7 +1,5 @@
-const {
-    SelectElement,
-    SelectElementContainer
-} = require('../SelectElementContainer')
+const { SelectElement, ElementContainer } = require('../ElementContainer')
+const { rewriteColumnName, rewriteExpression } = require('./CommonRewriter')
 
 module.exports = {
     rewrite
@@ -11,13 +9,13 @@ module.exports = {
  *
  * @param rawSelectElements {object[]}
  * @param hashMap {Map}
- * @returns {SelectElementContainer}
+ * @returns {ElementContainer}
  */
 function rewrite(rawSelectElements, hashMap) {
-    const container = new SelectElementContainer(hashMap)
+    const container = new ElementContainer(hashMap)
     for (let i = 0; i < rawSelectElements.length; i++) {
         const selectElement = rewriteSelectElement(rawSelectElements[i])
-        container.setSelectElement(i + 1, selectElement)
+        container.setElement(i + 1, selectElement)
     }
     return container
 }
@@ -40,31 +38,4 @@ function rewriteSelectElement(rawElement) {
     }
     let uid = rawElement.uid || null
     return new SelectElement(rawElement, compiled, uid) // TODO set aggregation function
-}
-
-// Common
-
-function rewriteExpression(expression) {
-    const recursiveRewrite = function (e) {
-        if (Array.isArray(e)) {
-            return e.map((item) => recursiveRewrite(item))
-        } else if (typeof e === 'object') {
-            if (e.hasOwnProperty('constant')) {
-                return e.constant
-            } else if (e.hasOwnProperty('columnName')) {
-                return rewriteColumnName(e)
-            }
-            return Object.keys(e).reduce((acc, key) => {
-                return {...acc, [key]: recursiveRewrite(e[key])}
-            }, {})
-        } else if (typeof e === 'string') {
-            return recursiveRewrite({ columnName: e})
-        }
-        return e
-    }
-    return recursiveRewrite(expression)
-}
-
-function rewriteColumnName(name) {
-    return `$${name.columnName.replace(/[$]+/g, '')}`
 }

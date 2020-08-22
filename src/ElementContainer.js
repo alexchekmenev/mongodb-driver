@@ -1,9 +1,14 @@
-const { getHash } = require('./CompilerUtils')
+module.exports = {
+    SelectElement,
+    GroupElement,
+    OrderElement,
+    ElementContainer
+}
 
-class SelectElementContainer {
-    constructor(hashMap) {
-        this.selectMap = new Map()
-        this.hashMap = hashMap
+class ElementContainer {
+    constructor(elementsByHash) {
+        this.elements = new Map()
+        this.elementsByHash = elementsByHash
     }
 
     /**
@@ -11,15 +16,15 @@ class SelectElementContainer {
      * @param position {number}
      * @param element {Element}
      */
-    setSelectElement(position, element) {
-        this.selectMap.set(position, element)
+    setElement(position, element) {
+        this.elements.set(position, element)
 
-        const hash = getHash(element)
-        if (!this.hashMap.has(hash)) {
-            element.setHashId(this.hashMap.size + 1)
-            this.hashMap.set(hash, element)
+        const hash = element.getHash()
+        if (!this.elementsByHash.has(hash)) {
+            element.setHashId(this.elementsByHash.size + 1)
+            this.elementsByHash.set(hash, element)
         } else {
-            const found = this.hashMap.get(hash)
+            const found = this.elementsByHash.get(hash)
             element.setHashId(found.hashId)
         }
     }
@@ -30,18 +35,18 @@ class SelectElementContainer {
      * @returns {Element}
      */
     getByReference(position) {
-        if (this.selectMap.has(position)) {
-            return this.selectMap.get(position)
+        if (this.elements.has(position)) {
+            return this.elements.get(position)
         }
-        throw new Error('No SelectElement at this position')
+        throw new Error('No element at this position')
     }
 
     entries() {
-        return this.selectMap.entries()
+        return this.elements.entries()
     }
 
     get size() {
-        return this.selectMap.size
+        return this.elements.size
     }
 
     // TODO add hasAggregationFunction
@@ -57,6 +62,10 @@ class Element {
 
     setHashId(id) {
         this.hashId = id
+    }
+
+    getHash() {
+        return JSON.stringify(this.compiled) // FIXME use .toString() on typed input
     }
 }
 
@@ -78,11 +87,4 @@ class OrderElement extends Element {
         super(raw, compiled, null);
         this.sortOrder = sortOrder === 'DESC' ? -1 : 1
     }
-}
-
-module.exports = {
-    SelectElement,
-    GroupElement,
-    OrderElement,
-    SelectElementContainer
 }

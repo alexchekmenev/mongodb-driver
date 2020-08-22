@@ -1,14 +1,16 @@
 const QueryParser = require('./QueryParser')
 const QueryRewriter = require('./QueryRewriter')
 
-const input = 'SELECT count(propA) a, Count(*) total, `donors` `donors__donor_state`, lol `donors__count` ' +
+const input = 'SELECT count(propA), Count(*) total, `donors` `donors__donor_state`, lol `donors__count` ' +
     'FROM b, test.donors AS `donors`, a WHERE a = "blabla" OR 1 > 0 GROUP BY 1 ASC, state, COUNT(a) ' +
     'ORDER BY 2 ASC LIMIT 10000 OFFSET 10;'
+test(input)
 
 const input1 = 'SELECT\n' +
     '  count(*) `donors__count` FROM\n' +
     '  test.donors AS `donors` WHERE\n' +
     '  10 < 100 && `donors`."Donor City" = "San Francisco" LIMIT 10000'
+test(input1)
 
 const real =
     '    SELECT\n' +
@@ -16,12 +18,16 @@ const real =
     '    FROM\n' +
     '       donors AS `donors` WHERE 10 < 100\n' +
     '  GROUP BY 1, donors.`Donor City`, 4 ORDER BY 1, 3 DESC LIMIT 10000 []'
+test(real)
 
 const withSegment = 'SELECT\n' +
     '      `Donor City` `donors__donor_city`, count(*) `donors__count`\n' +
     '    FROM\n' +
     '      donors AS `donors`\n' +
     '  WHERE (`donors`."Donor State" = \'Illinois\') GROUP BY 1 ORDER BY 2 DESC LIMIT 10000'
+test(withSegment)
+
+// test('select count(*) as tot from donors')
 
 // TODO GROUP BY `colunmName`. now it's parsed as constant string
 // TODO ORDER BY `colunmName` and alias (uid). now it's parsed as constant string
@@ -72,8 +78,6 @@ async function test(input) {
     const mongoDbPipeline = rewriter.rewrite(parsedSqlQuery)
     console.log('MongoDB', JSON.stringify(mongoDbPipeline, null, 2))
 }
-
-test('select count(*) as tot from donors')
 
 module.exports = query
 

@@ -1,7 +1,5 @@
-const {
-    OrderElement,
-    SelectElementContainer
-} = require('../SelectElementContainer')
+const { OrderElement, ElementContainer } = require('../ElementContainer')
+const { rewriteExpression } = require('./CommonRewriter')
 
 module.exports = {
     rewrite
@@ -11,14 +9,14 @@ module.exports = {
  *
  * @param rawOrderExpressions {object[]}
  * @param hashMap {Map}
- * @param selectContainer {SelectElementContainer}
- * @returns {SelectElementContainer}
+ * @param selectContainer {ElementContainer}
+ * @returns {ElementContainer}
  */
 function rewrite(rawOrderExpressions, hashMap, selectContainer) {
-    const container = new SelectElementContainer(hashMap) // TODO new ExpressionContainer(hashMap) ?
+    const container = new ElementContainer(hashMap)
     for (let i = 0; i < rawOrderExpressions.length; i++) {
         const orderExpression = rewriteOrderExpression(rawOrderExpressions[i], selectContainer)
-        container.setSelectElement(i + 1, orderExpression)
+        container.setElement(i + 1, orderExpression)
     }
     return container
 }
@@ -29,44 +27,15 @@ function rewrite(rawOrderExpressions, hashMap, selectContainer) {
  * @param selectContainer
  * @returns {OrderElement}
  */
-// for now - only simple fields
-// FIXME add expression fields -> calc resulted expressions on group stage + project to order stage
 function rewriteOrderExpression(expressionWithOrder, selectContainer) {
     const expression = expressionWithOrder.expression
     const order = expressionWithOrder.order
-    let compiled = null
-    if (expression.hasOwnProperty('constant')) { // ORDER BY 1, 2
+    let compiled
+    if (expression.hasOwnProperty('constant')) {
         const position = parseInt(expression.constant)
         compiled = selectContainer.getByReference(position).compiled
     } else {
         compiled = rewriteExpression(expression)
     }
     return new OrderElement(expression, compiled, order)
-}
-
-// Common
-
-function rewriteExpression(expression) {
-    const recursiveRewrite = function (e) {
-        if (Array.isArray(e)) {
-            return e.map((item) => recursiveRewrite(item))
-        } else if (typeof e === 'object') {
-            if (e.hasOwnProperty('constant')) {
-                return e.constant
-            } else if (e.hasOwnProperty('columnName')) {
-                return rewriteColumnName(e)
-            }
-            return Object.keys(e).reduce((acc, key) => {
-                return {...acc, [key]: recursiveRewrite(e[key])}
-            }, {})
-        } else if (typeof e === 'string') {
-            return recursiveRewrite({ columnName: e})
-        }
-        return e
-    }
-    return recursiveRewrite(expression)
-}
-
-function rewriteColumnName(name) {
-    return `$${name.columnName.replace(/[$]+/g, '')}`
 }

@@ -2,7 +2,6 @@ const { rewrite: rewriteWhere } = require('./rewriters/WhereRewriter')
 const { rewrite: rewriteSelect } = require('./rewriters/SelectRewriter')
 const { rewrite: rewriteGroup } = require('./rewriters/GroupRewriter')
 const { rewrite: rewriteOrder } = require('./rewriters/OrderRewriter')
-const { getHash } = require('./CompilerUtils')
 
 class QueryRewriter {
 
@@ -79,7 +78,7 @@ function construct(selectContainer, groupContainer, orderContainer) {
     for (let pos = 1; pos <= selectContainer.size; pos++) {
         const selectElement = selectContainer.getByReference(pos)
 
-        const projectingUid = selectElement.uid ? selectElement.uid : getHash(selectElement)
+        const projectingUid = selectElement.uid ? selectElement.uid : selectElement.getHash()
         if (groupIndexHashIds.has(selectElement.hashId)) {
             projectFields[projectingUid] = `$_id.<${selectElement.hashId}>`
         } else {
@@ -94,6 +93,8 @@ function construct(selectContainer, groupContainer, orderContainer) {
         projectFieldsHashIds.set(selectElement.hashId, projectingUid)
     }
 
+    // For now support ordering only by simple fields
+    // TODO add expression fields -> calc resulted expressions on group stage + project to order stage
     const sortFields = {}
     for (let pos = 1; pos <= orderContainer.size; pos++) {
         const orderElement = orderContainer.getByReference(pos)
