@@ -45,4 +45,10 @@ async function insertRows(client, data) {
         })
         await collection.insertMany(docs)
     }
+    // await collection.createIndexes([
+    //     {"Donor City": 1},
+    //     {"Donor Is Teacher": 1},
+    //     {"Donor State": 1},
+    //     {"Donor Zip": 1}
+    // ], {background: true})
 }

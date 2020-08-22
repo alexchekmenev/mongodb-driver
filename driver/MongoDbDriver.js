@@ -44,13 +44,16 @@ class MongoDbDriver extends BaseDriver {
             ...restConfig
         };
         const url = `mongodb://${this.config.user}:${this.config.password}@${this.config.host}:${this.config.port}/${this.config.database}?authSource=admin`;
-        const poolSize = process.env.CUBEJS_DB_MAX_POOL && parseInt(process.env.CUBEJS_DB_MAX_POOL, 10) || 5
-        this.client = new MongoClient(url, { useUnifiedTopology: true } )
+        const poolSize = process.env.CUBEJS_DB_MAX_POOL && parseInt(process.env.CUBEJS_DB_MAX_POOL, 10) || 10
+        this.client = new MongoClient(url, {
+            poolSize,
+            useUnifiedTopology: true
+        } )
     }
 
     async testConnection() {
         console.log('[mongodb-driver]: testConnection')
-        await connect(this.client)
+        await this.query(`SELECT count(*) as total FROM ${this.config.database}`)
     }
 
     async query(query, values) {
@@ -65,13 +68,12 @@ class MongoDbDriver extends BaseDriver {
         await this.client.close();
     }
 
-    tablesSchema() {
+    async tablesSchema() {
         return [] // FIXME use sampling
-    }
 
-    quoteIdentifier(identifier) {
-        console.log('ID', identifier)
-        return `\`${identifier}\``;
+        const db = this.client.db(this.config.database)
+        const collections = await db.runCommand( { listCollections: 1.0, nameOnly: true } )
+        console.log(collections)
     }
 
     // withConnection(fn) {

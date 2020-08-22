@@ -18,7 +18,7 @@
     "run": "node driver/MongoDbDriver.js",
     "run:parser": "node src/index.js",
     "test": "jest",
-    "lint": "eslint driver/*.js test/*.js"
+    "lint": "eslint driver/*.js src/*.js test/*.js"
   },
   "dependencies": {
     "@cubejs-backend/query-orchestrator": "^0.19.56",

@@ -73,7 +73,7 @@ async function test(input) {
     console.log('MongoDB', JSON.stringify(mongoDbPipeline, null, 2))
 }
 
-test(withSegment)
+test('select count(*) as tot from donors')
 
 module.exports = query
 
