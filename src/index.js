@@ -1,16 +1,45 @@
-const QueryParser = require('./QueryParser')
-const QueryRewriter = require('./QueryRewriter')
+const { parse } = require('./QueryParser')
+const { rewrite } = require('./QueryRewriter')
+
+module.exports = { query }
+
+/**
+ *
+ * @param db
+ * @param sqlQuery {string}
+ * @returns {Promise<*[]>}
+ */
+async function query(db, sqlQuery) {
+    const result = convert(sqlQuery)
+    return db.collection(result.collectionName)
+        .aggregate(result.pipeline, {
+            allowDiskUse: true
+        }).toArray()
+}
+
+/**
+ *
+ * @param sqlQuery
+ * @returns {{collectionName: string, pipeline: *[]}}
+ */
+function convert(sqlQuery) {
+    const parsedSqlQuery = parse(sqlQuery)
+    console.log('SQL:', JSON.stringify(parsedSqlQuery, null, 2))
+    const result = rewrite(parsedSqlQuery)
+    console.log('MongoDB:', JSON.stringify(result, null, 2))
+    return result
+}
 
 const input = 'SELECT count(propA), Count(*) total, `donors` `donors__donor_state`, lol `donors__count` ' +
     'FROM b, test.donors AS `donors`, a WHERE a = "blabla" OR 1 > 0 GROUP BY 1 ASC, state, COUNT(a) ' +
     'ORDER BY 2 ASC LIMIT 10000 OFFSET 10;'
-test(input)
+convert(input)
 
 const input1 = 'SELECT\n' +
     '  count(*) `donors__count` FROM\n' +
     '  test.donors AS `donors` WHERE\n' +
     '  10 < 100 && `donors`."Donor City" = "San Francisco" LIMIT 10000'
-test(input1)
+convert(input1)
 
 const real =
     '    SELECT\n' +
@@ -18,67 +47,14 @@ const real =
     '    FROM\n' +
     '       donors AS `donors` WHERE 10 < 100\n' +
     '  GROUP BY 1, donors.`Donor City`, 4 ORDER BY 1, 3 DESC LIMIT 10000 []'
-test(real)
+convert(real)
 
 const withSegment = 'SELECT\n' +
     '      `Donor City` `donors__donor_city`, count(*) `donors__count`\n' +
     '    FROM\n' +
     '      donors AS `donors`\n' +
     '  WHERE (`donors`."Donor State" = \'Illinois\') GROUP BY 1 ORDER BY 2 DESC LIMIT 10000'
-test(withSegment)
+convert(withSegment)
 
-// test('select count(*) as tot from donors')
-
-// TODO GROUP BY `colunmName`. now it's parsed as constant string
-// TODO ORDER BY `colunmName` and alias (uid). now it's parsed as constant string
-
-
-// const dbName = 'cube-js';
-// const user = encodeURIComponent('root');
-// const password = encodeURIComponent('rootpassword');
-// const authMec    hanism = 'DEFAULT';
-// const url = `mongodb://${user}:${password}@localhost:27017/?authMechanism=${authMechanism}`;
-
-// async function connect() {
-//     return new Promise((resolve, reject) => {
-//         const client = new MongoClient(url);
-//         client.connect(function(err) {
-//             if (err) {
-//                 return reject(err)
-//             }
-//             console.log("Connected successfully to server");
-//             resolve(client)
-//         });
-//     })
-// }
-
-async function query(db, input) {
-    const parser = new QueryParser()
-    const parsedSqlQuery = parser.parse(input)
-    console.log('SQL query', JSON.stringify(parsedSqlQuery, null, 2))
-
-    const rewriter = new QueryRewriter()
-    const mongoDbPipeline = rewriter.rewrite(parsedSqlQuery)
-    console.log('MongoDB', JSON.stringify(mongoDbPipeline, null, 2))
-
-    return db.collection(mongoDbPipeline.collectionName)
-        .aggregate(mongoDbPipeline.pipeline, {
-            allowDiskUse: true
-        }).toArray()
-    // console.log('Result: ', JSON.stringify(result, null, 2))
-    // return result
-}
-
-async function test(input) {
-    const parser = new QueryParser()
-    const parsedSqlQuery = parser.parse(input)
-    console.log('SQL query', JSON.stringify(parsedSqlQuery, null, 2))
-
-    const rewriter = new QueryRewriter()
-    const mongoDbPipeline = rewriter.rewrite(parsedSqlQuery)
-    console.log('MongoDB', JSON.stringify(mongoDbPipeline, null, 2))
-}
-
-module.exports = query
-
+// convert('select count(*) as tot from donors')
 

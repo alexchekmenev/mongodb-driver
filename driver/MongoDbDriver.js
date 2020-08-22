@@ -3,10 +3,10 @@ const genericPool = require('generic-pool');
 const { promisify } = require('util');
 const crypto = require('crypto');
 
-const {MongoClient, Logger } = require('mongodb');
-const BaseDriver = require('@cubejs-backend/query-orchestrator/driver/BaseDriver');
-const execQuery = require('../src/index')
-const MysqlQuery = require('@cubejs-backend/schema-compiler/adapter/MysqlQuery');
+const { MongoClient, Logger } = require('mongodb')
+const BaseDriver = require('@cubejs-backend/query-orchestrator/driver/BaseDriver')
+const { query: execQuery } = require('../src/index')
+const MysqlQuery = require('@cubejs-backend/schema-compiler/adapter/MysqlQuery')
 
 Logger.setLevel("error");
 
@@ -56,11 +56,12 @@ class MongoDbDriver extends BaseDriver {
         await this.query(`SELECT count(*) as total FROM ${this.config.database}`)
     }
 
+    // do not support prepared statements
     async query(query, values) {
         console.log('[mongodb-driver]: query', query, values)
         await connect(this.client)
         const db = this.client.db(this.config.database)
-        return execQuery(db, query) // do not support prepared statements
+        return execQuery(db, query)
     }
 
     async release() {

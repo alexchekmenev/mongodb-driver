@@ -1,10 +1,3 @@
-module.exports = {
-    SelectElement,
-    GroupElement,
-    OrderElement,
-    ElementContainer
-}
-
 class ElementContainer {
     constructor(elementsByHash) {
         this.elements = new Map()
@@ -87,4 +80,11 @@ class OrderElement extends Element {
         super(raw, compiled, null);
         this.sortOrder = sortOrder === 'DESC' ? -1 : 1
     }
+}
+
+module.exports = {
+    SelectElement,
+    GroupElement,
+    OrderElement,
+    ElementContainer
 }
