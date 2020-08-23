@@ -1,7 +1,7 @@
 /* globals describe, afterAll, beforeAll, test, xtest, expect, jest */
 const { convert } = require('../src/index')
 
-describe('', () => {
+describe('Convert SQL to MongoDB', () => {
 
     test('simple test with filter', () => {
         const input1 = `
@@ -12,7 +12,7 @@ describe('', () => {
             LIMIT 10000`
         const result = convert(input1)
         expect(result).toEqual({
-            "collectionName": "test_donors",
+            "collectionName": "donors",
             "pipeline": [
                 {
                     "$match": {
@@ -247,11 +247,6 @@ describe('', () => {
                 }
             ]
         })
-    })
-
-    test('total count with alias', () => {
-        const input = 'select count(*) as tot from donors'
-        convert(input)
     })
 
     // TODO test - columnName with $

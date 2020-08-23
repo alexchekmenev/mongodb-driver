@@ -27,8 +27,10 @@ class Visitor extends BaseVisitor {
 
     // ! get only first table in list
     visitTableName(ctx) {
+        const parts = ctx.getText().split('.')
+        let tableName = parts[parts.length - 1]
         return {
-            from: removeQuotes(ctx.getText())
+            from: removeQuotes(tableName)
         }
     }
 

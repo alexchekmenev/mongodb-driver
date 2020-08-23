@@ -14,10 +14,12 @@
   "main": "driver/MongoDbDriver.js",
   "scripts": {
     "generate": "chmod +x generate.sh && ./generate.sh",
+    "init": "node scripts/init.js",
     "run": "node driver/MongoDbDriver.js",
     "test": "yarn lint && yarn test:spec && yarn test:e2e",
-    "test:spec": "jest test/MongoDbDriver.spec.js",
-    "test:e2e": "jest test/MongoDbDriver.e2e.js",
+    "test:spec": "jest test/convert.spec.js",
+    "test:e2e": "jest test/query-docker.spec.js",
+    "test:e2e:manual": "jest test/query.spec.js",
     "lint": "eslint driver/*.js src/*.js test/*.js"
   },
   "dependencies": {
@@ -25,7 +27,9 @@
     "@cubejs-backend/schema-compiler": "^0.19.61",
     "generic-pool": "^3.6.0",
     "mongodb": "^3.6.0",
-    "mysql": "^2.16.0"
+    "mysql": "^2.16.0",
+    "rambda": "^5.13.1",
+    "ramda": "^0.27.1"
   },
   "devDependencies": {
     "antlr4": "^4.8.0",
@@ -35,6 +39,7 @@
     "eslint-plugin-import": "^2.16.0",
     "eslint-plugin-node": "^5.2.1",
     "jest": "^25.1.0",
+    "node-duration": "^2.0.0",
     "testcontainers": "^2.4.0"
   },
   "license": "Apache-2.0",

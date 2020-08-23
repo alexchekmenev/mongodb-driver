@@ -1,6 +1,11 @@
 module.exports = {
+    rewriteTableName,
     rewriteColumnName,
     rewriteExpression
+}
+
+function rewriteTableName(name) {
+    return name.replace(/[.\s$]+/g, '_')
 }
 
 function rewriteColumnName(name) {

@@ -2,6 +2,7 @@ const { rewrite: rewriteWhere } = require('./rewriters/WhereRewriter')
 const { rewrite: rewriteSelect } = require('./rewriters/SelectRewriter')
 const { rewrite: rewriteGroup } = require('./rewriters/GroupRewriter')
 const { rewrite: rewriteOrder } = require('./rewriters/OrderRewriter')
+const { rewriteTableName } = require('./rewriters/CommonRewriter')
 
 module.exports = {
     rewrite
@@ -53,10 +54,6 @@ function rewrite(sqlQuery) {
     }
 
     return { collectionName, pipeline }
-}
-
-function rewriteTableName(name) {
-    return name.replace(/[.\s$]+/g, '_')
 }
 
 // TODO GROUP BY `columnName`. now it's parsed as constant string

@@ -1,56 +1,73 @@
 const fs = require('fs');
 const parse = require('csv-parse');
-const MongoClient = require('mongodb').MongoClient;
+const { MongoClient } = require('mongodb');
+const { promisify } = require('util');
 
-const dbName = 'cube-js';
-const user = encodeURIComponent('root');
-const password = encodeURIComponent('rootpassword');
-const authMechanism = 'DEFAULT';
-const url = `mongodb://${user}:${password}@localhost:27017/?authMechanism=${authMechanism}`;
+module.exports = { populate }
 
-// TODO check dataset file exists
+const DOCUMENTS_IN_PART = 1e5
 
-const csvData=[];
-fs.createReadStream('./data/Donors.csv')
-    .pipe(parse({delimiter: ','}))
-    .on('data', function(csvrow) {
-        csvData.push(csvrow);
-    })
-    .on('end',async function() {
-        const client = await connect()
-        await insertRows(client, csvData)
-        client.close()
-    });
+async function populate(dbName, port, user, password) {
+    const authMechanism = 'DEFAULT';
+    const url = `mongodb://${encodeURIComponent(user)}:${encodeURIComponent(password)}@localhost:${port}/?authMechanism=${authMechanism}`;
+    const client = new MongoClient(url, { useUnifiedTopology: true });
+    await promisify(client.connect.bind(client))()
 
-async function connect() {
-    return new Promise((resolve, reject) => {
-        const client = new MongoClient(url);
-        client.connect(function(err) {
-            if (err) {
-                return reject(err)
-            }
-            console.log("Connected successfully to server");
-            resolve(client)
-        });
-    })
+    try {
+
+        const csvRows = [];
+        console.log('parse...')
+        await new Promise((resolve, reject) => {
+            fs.createReadStream('./data/Donors.csv')
+                .pipe(parse({delimiter: ','}))
+                .on('data', async function (csvRow) {
+                    // if (csvRows.length > 1000) return
+                    csvRows.push(csvRow);
+                })
+                .on('end', async function () {
+                    resolve(csvRows)
+                })
+                .on('error', function (e) {
+                    reject(e)
+                })
+        })
+
+        console.log('insert...')
+        for (let i = 1; i < csvRows.length; i += DOCUMENTS_IN_PART) {
+            await insertRows(client.db(dbName), csvRows.slice(i, Math.min(csvRows.length, i + DOCUMENTS_IN_PART)))
+        }
+
+        console.log('create indexes...')
+        const collection = client.db(dbName).collection('donors')
+        await collection.createIndexes([
+            { key: {"Donor City": 1}, name: "_city"},
+            { key: {"Donor Is Teacher": 1}, name: "_teacher"},
+            { key: {"Donor State": 1}, name: "_state"},
+            { key: {"Donor Zip": 1}, name: "_zip"}
+        ])
+
+    } catch (e) {
+        console.error(e)
+    } finally {
+        await client.close()
+    }
 }
 
-async function insertRows(client, data) {
-    const db = client.db(dbName)
-    const collection = db.collection('donors')
-    await collection.drop()
-    for (let i = 1; i < data.length; i += 100_000) {
-        const docs = data.slice(i, Math.min(i + 100_000, data.length)).map(row => {
-            return data[0].reduce((acc, field, index) => {
-                return {...acc, [field]: row[index]}
-            }, {})
-        })
-        await collection.insertMany(docs)
+function rowToDocument(row) {
+    // Donor ID,Donor City,Donor State,Donor Is Teacher,Donor Zip
+    return {
+        "Donor ID": row[0],
+        "Donor City": row[1] || null,
+        "Donor State": row[2] || null,
+        "Donor Is Teacher": row[3] || null,
+        "Donor Zip": row[4] || null
     }
-    // await collection.createIndexes([
-    //     {"Donor City": 1},
-    //     {"Donor Is Teacher": 1},
-    //     {"Donor State": 1},
-    //     {"Donor Zip": 1}
-    // ], {background: true})
+}
+
+async function insertRows(db, data) {
+    const collection = db.collection('donors')
+    const count = await db.collection('donors').estimatedDocumentCount()
+    console.log('inserted count', count)
+    const docs = data.map(row => rowToDocument(row))
+    await collection.insertMany(docs)
 }

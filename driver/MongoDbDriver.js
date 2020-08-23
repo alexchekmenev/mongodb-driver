@@ -1,30 +1,23 @@
 const mysql = require('mysql');
-const genericPool = require('generic-pool');
 const { promisify } = require('util');
-const crypto = require('crypto');
+const { reduce } = require('ramda');
 
 const { MongoClient, Logger } = require('mongodb')
 const BaseDriver = require('@cubejs-backend/query-orchestrator/driver/BaseDriver')
 const { query: execQuery } = require('../src/index')
 const MysqlQuery = require('@cubejs-backend/schema-compiler/adapter/MysqlQuery')
 
-Logger.setLevel("error");
-
-// const GenericTypeToMySql = {
-//     string: 'varchar(255) CHARACTER SET utf8mb4',
-//     text: 'varchar(255) CHARACTER SET utf8mb4'
+// Logger.setLevel("error");
+//
+// const sortByKeys = (unordered) => {
+//     const ordered = {};
+//
+//     Object.keys(unordered).sort().forEach((key) => {
+//         ordered[key] = unordered[key];
+//     });
+//
+//     return ordered;
 // };
-
-async function connect(client) {
-    return new Promise((resolve, reject) => {
-        client.connect(function(err) {
-            if (err) {
-                return reject(err)
-            }
-            resolve()
-        });
-    })
-}
 
 class MongoDbDriver extends BaseDriver {
 
@@ -48,157 +41,79 @@ class MongoDbDriver extends BaseDriver {
         this.client = new MongoClient(url, {
             poolSize,
             useUnifiedTopology: true
-        } )
+        })
+    }
+
+    async query(query, values) {
+        // console.log(query, values)
+        await promisify(this.client.connect.bind(this.client))()
+        const db = this.client.db(this.config.database)
+        const result = await execQuery(db, query, values)
+        // console.log(result)
+        return result
     }
 
     async testConnection() {
         console.log('[mongodb-driver]: testConnection')
-        await this.query(`SELECT count(*) as total FROM ${this.config.database}`)
-    }
-
-    // do not support prepared statements
-    async query(query, values) {
-        console.log('[mongodb-driver]: query', query, values)
-        await connect(this.client)
-        const db = this.client.db(this.config.database)
-        return execQuery(db, query)
+        await promisify(this.client.connect.bind(this.client))()
+        const isConnected = await this.client.isConnected()
+        if (!isConnected) {
+            throw new Error('Client is not connected to MongoDB')
+        }
     }
 
     async release() {
         console.log('[mongodb-driver]: release')
-        await this.client.close();
+        return await this.client.close(true)
     }
 
-    async tablesSchema() {
-        return [] // FIXME use sampling
-
-        const db = this.client.db(this.config.database)
-        const collections = await db.runCommand( { listCollections: 1.0, nameOnly: true } )
-        console.log(collections)
-    }
-
-    // withConnection(fn) {
-    //     const self = this;
-    //     const connectionPromise = this.pool.acquire();
+    // tablesSchema() {
+    //     const reduceCb = (result, i) => {
+    //         let schema = (result[i.table_schema] || {});
+    //         const tables = (schema[i.table_name] || []);
     //
-    //     let cancelled = false;
-    //     const cancelObj = {};
-    //     const promise = connectionPromise.then(async conn => {
-    //         const [{ connectionId }] = await conn.execute('select connection_id() as connectionId');
-    //         cancelObj.cancel = async () => {
-    //             cancelled = true;
-    //             await self.withConnection(async processConnection => {
-    //                 await processConnection.execute(`KILL ${connectionId}`);
-    //             });
-    //         };
-    //         return fn(conn)
-    //             .then(res => this.pool.release(conn).then(() => {
-    //                 if (cancelled) {
-    //                     throw new Error('Query cancelled');
-    //                 }
-    //                 return res;
-    //             }))
-    //             .catch((err) => this.pool.release(conn).then(() => {
-    //                 if (cancelled) {
-    //                     throw new Error('Query cancelled');
-    //                 }
-    //                 throw err;
-    //             }));
-    //     });
-    //     promise.cancel = () => cancelObj.cancel();
-    //     return promise;
-    // }
+    //         tables.push({ name: i.column_name, type: i.data_type, attributes: i.key_type ? ['primaryKey'] : [] });
     //
-    // setTimeZone(db) {
-    //     return db.execute(`SET time_zone = '${this.config.storeTimezone || '+00:00'}'`, []);
-    // }
+    //         tables.sort();
+    //         schema[i.table_name] = tables;
+    //         schema = sortByKeys(schema);
+    //         result[i.table_schema] = schema;
     //
-    // informationSchemaQuery() {
-    //     return `${super.informationSchemaQuery()} AND columns.table_schema = '${this.config.database}'`;
-    // }
-    //
-    // quoteIdentifier(identifier) {
-    //     return `\`${identifier}\``;
-    // }
-    //
-    // fromGenericType(columnType) {
-    //     return GenericTypeToMySql[columnType] || super.fromGenericType(columnType);
-    // }
-    //
-    // loadPreAggregationIntoTable(preAggregationTableName, loadSql, params, tx) {
-    //     if (this.config.loadPreAggregationWithoutMetaLock) {
-    //         return this.cancelCombinator(async saveCancelFn => {
-    //             await saveCancelFn(this.query(`${loadSql} LIMIT 0`, params));
-    //             await saveCancelFn(this.query(loadSql.replace(/^CREATE TABLE (\S+) AS/i, 'INSERT INTO $1'), params));
-    //         });
-    //     }
-    //     return super.loadPreAggregationIntoTable(preAggregationTableName, loadSql, params, tx);
-    // }
-    //
-    // async downloadQueryResults(query, values) {
-    //     if (!this.config.database) {
-    //         throw new Error(`Default database should be defined to be used for temporary tables during query results downloads`);
-    //     }
-    //     const tableName = crypto.randomBytes(10).toString('hex');
-    //     const columns = await this.withConnection(async db => {
-    //         await this.setTimeZone(db);
-    //         await db.execute(`CREATE TEMPORARY TABLE \`${this.config.database}\`.t_${tableName} AS ${query} LIMIT 0`, values);
-    //         const result = await db.execute(`DESCRIBE \`${this.config.database}\`.t_${tableName}`);
-    //         await db.execute(`DROP TEMPORARY TABLE \`${this.config.database}\`.t_${tableName}`);
-    //         return result;
-    //     });
-    //
-    //     const types = columns.map(c => ({ name: c.Field, type: this.toGenericType(c.Type) }));
-    //
-    //     return {
-    //         rows: await this.query(query, values),
-    //         types,
+    //         return sortByKeys(result);
     //     };
-    // }
-    //
-    // toColumnValue(value, genericType) {
-    //     if (genericType === 'timestamp' && typeof value === 'string') {
-    //         return value && value.replace('Z', '');
-    //     }
-    //     if (genericType === 'boolean' && typeof value === 'string') {
-    //         if (value.toLowerCase() === 'true') {
-    //             return true;
+    //     const data = [
+    //         {
+    //             "COLUMN_NAME": "Donor ID",
+    //             "TABLE_NAME": "donors",
+    //             "TABLE_SCHEMA": "test",
+    //         },
+    //         {
+    //             "COLUMN_NAME": "Donor City",
+    //             "TABLE_NAME": "donors",
+    //             "TABLE_SCHEMA": "test",
+    //         },
+    //         {
+    //             "COLUMN_NAME": "Donor State",
+    //             "TABLE_NAME": "donors",
+    //             "TABLE_SCHEMA": "test",
+    //         },
+    //         {
+    //             "COLUMN_NAME": "Donor Is Teacher",
+    //             "TABLE_NAME": "donors",
+    //             "TABLE_SCHEMA": "test",
+    //         },
+    //         {
+    //             "COLUMN_NAME": "Donor Zip",
+    //             "TABLE_NAME": "donors",
+    //             "TABLE_SCHEMA": "test",
     //         }
-    //         if (value.toLowerCase() === 'false') {
-    //             return false;
-    //         }
-    //     }
-    //     return super.toColumnValue(value, genericType);
+    //     ];
+    //     return reduce(reduceCb, {}, data)
     // }
-    //
-    // async uploadTable(table, columns, tableData) {
-    //     if (!tableData.rows) {
-    //         throw new Error(`${this.constructor} driver supports only rows upload`);
-    //     }
-    //     await this.createTable(table, columns);
-    //     try {
-    //         const batchSize = 1000; // TODO make dynamic?
-    //         for (let j = 0; j < Math.ceil(tableData.rows.length / batchSize); j++) {
-    //             const currentBatchSize = Math.min(tableData.rows.length - j * batchSize, batchSize);
-    //             const indexArray = Array.from({ length: currentBatchSize }, (v, i) => i);
-    //             const valueParamPlaceholders =
-    //                 indexArray.map(i => `(${columns.map((c, paramIndex) => this.param(paramIndex + i * columns.length)).join(', ')})`).join(', ');
-    //             const params = indexArray.map(i => columns
-    //                 .map(c => this.toColumnValue(tableData.rows[i + j * batchSize][c.name], c.type)))
-    //                 .reduce((a, b) => a.concat(b), []);
-    //
-    //             await this.query(
-    //                 `INSERT INTO ${table}
-    //     (${columns.map(c => this.quoteIdentifier(c.name)).join(', ')})
-    //     VALUES ${valueParamPlaceholders}`,
-    //                 params
-    //             );
-    //         }
-    //     } catch (e) {
-    //         await this.dropTable(table);
-    //         throw e;
-    //     }
-    // }
+
+    quoteIdentifier(identifier) {
+        return `\`${identifier}\``;
+    }
 }
 
 module.exports = MongoDbDriver;
