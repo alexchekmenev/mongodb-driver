@@ -5,11 +5,8 @@ module.exports = {
 }
 
 function rewrite(where) {
-    if (!where || !Object.keys(where).length) {
+    if (!where) {
         return null
-    }
-    if (Array.isArray(where)) {
-        where = where[0]
     }
     return {
         $expr: rewriteExpression(where)

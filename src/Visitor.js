@@ -220,7 +220,7 @@ class Visitor extends BaseVisitor {
         for (let i = 0; ctx.expression(i); i++) {
             atoms.push(this.visit(ctx.expression(i)))
         }
-        return atoms
+        return atoms[0] // TODO consider empty array
     }
 
     visitBitExpressionAtom(ctx) {
