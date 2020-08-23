@@ -36,7 +36,6 @@ class MongoDbDriver extends BaseDriver {
     }
 
     async testConnection() {
-        console.log('[mongodb-driver]: testConnection')
         await promisify(this.client.connect.bind(this.client))()
         const isConnected = await this.client.isConnected()
         if (!isConnected) {
@@ -45,12 +44,15 @@ class MongoDbDriver extends BaseDriver {
     }
 
     async release() {
-        console.log('[mongodb-driver]: release')
         return await this.client.close(true)
     }
 
     quoteIdentifier(identifier) {
         return `\`${identifier}\``;
+    }
+
+    tablesSchema() {
+        return []
     }
 }
 
