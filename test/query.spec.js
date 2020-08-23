@@ -198,7 +198,7 @@ describe('Query method', () => {
                                                     AND (donors.\`Donor State\` = ?)
                                                   GROUP BY 1
                                                   ORDER BY 2 DESC
-                                                  LIMIT 10`, ["Yes", "Maryland"])
+                                                  LIMIT 20`, ["Yes", "Maryland"])
         expect(result).toEqual([
             { donors__donor_city: 'Baltimore', donors__count: 758 },
             { donors__donor_city: 'Silver Spring', donors__count: 145 },
@@ -209,7 +209,17 @@ describe('Query method', () => {
             { donors__donor_city: 'Columbia', donors__count: 67 },
             { donors__donor_city: 'Hyattsville', donors__count: 65 },
             { donors__donor_city: 'Gaithersburg', donors__count: 55 },
-            { donors__donor_city: 'Rockville', donors__count: 52 }
+            { donors__donor_city: 'Glen Burnie', donors__count: 52 },
+            { donors__donor_city: 'Rockville', donors__count: 52 },
+            { donors__donor_city: 'Upper Marlboro', donors__count: 44 },
+            { donors__donor_city: 'Annapolis', donors__count: 44 },
+            { donors__donor_city: 'Hagerstown', donors__count: 41 },
+            { donors__donor_city: 'Ellicott City', donors__count: 40 },
+            { donors__donor_city: 'Germantown', donors__count: 39 },
+            { donors__donor_city: 'Parkville', donors__count: 38 },
+            { donors__donor_city: 'Catonsville', donors__count: 32 },
+            { donors__donor_city: 'Pasadena', donors__count: 32 },
+            { donors__donor_city: 'Nottingham', donors__count: 29 }
         ])
     })
 
@@ -243,6 +253,41 @@ describe('Query method', () => {
                 donors__donor_city: null,
                 donors__donor_is_teacher: 'Yes',
                 donors__count: 3
+            }
+        ])
+    })
+
+    test('multiple filters, multiple implicit fields', async () => {
+        const result = await mongoDbDriver.query(`SELECT \`Donor City\`       \`donors__donor_city\`,
+                                                         \`Donor State\`      \`donors__donor_state\`,
+                                                         \`Donor Is Teacher\` \`donors__donor_is_teacher\`,
+                                                         \`Donor Zip\`        \`donors__donor_zip\`,
+                                                         count(*)             \`donors__count\`
+                                                  FROM donors AS \`donors\`
+                                                  WHERE (\`Donor Is Teacher\` = ?)
+                                                    AND (\`Donor State\` = ?)
+                                                    AND (
+                                                          \`Donor City\` <> ?
+                                                          OR \`Donor City\` IS NULL
+                                                      )
+                                                    AND (
+                                                          \`Donor City\` <> ?
+                                                          OR \`Donor City\` IS NULL
+                                                      )
+                                                    AND (\`Donor Zip\` = ?)
+                                                  GROUP BY 1,
+                                                           2,
+                                                           3,
+                                                           4
+                                                  ORDER BY 5 DESC
+                                                  LIMIT 10000`, ["Yes", "Maryland", "Laurel", "Silver Spring", "941"])
+        expect(result).toEqual([
+            {
+                donors__donor_city: 'San Francisco',
+                donors__donor_state: 'Maryland',
+                donors__donor_is_teacher: 'Yes',
+                donors__donor_zip: '941',
+                donors__count: 1
             }
         ])
     })

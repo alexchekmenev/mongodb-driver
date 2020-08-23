@@ -17,7 +17,9 @@ function rewriteExpression(expression) {
         if (Array.isArray(e)) {
             return e.map((item) => recursiveRewrite(item))
         } else if (typeof e === 'object') {
-            if (e.hasOwnProperty('constant')) {
+            if (e === null) {
+                return e
+            } else if (e.hasOwnProperty('constant')) {
                 return e.constant
             } else if (e.hasOwnProperty('columnName')) {
                 return rewriteColumnName(e)

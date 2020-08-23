@@ -59,6 +59,9 @@ async function findImplicitVariables(db, {collectionName, pipeline}) {
                 return find(item, fields)
             })
         } else if (typeof o === 'object') {
+            if (o === null) {
+                return o
+            }
             return Object.keys(o).reduce((acc, key) => {
                 const value = o[key]
                 if (typeof value === 'string' && fields.indexOf(value) !== -1) {

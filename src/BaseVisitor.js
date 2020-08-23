@@ -64,10 +64,6 @@ class BaseVisitor extends MySqlParserVisitor {
         throw new Error('Do not support IN predicate')
     }
 
-    visitIsNullPredicate(ctx) {
-        throw new Error('Do not support IS NULL predicate')
-    }
-
     visitSubqueryComparasionPredicate(ctx) {
         throw new Error('Do not support sub-query comparison predicate')
     }

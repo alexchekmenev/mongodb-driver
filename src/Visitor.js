@@ -188,6 +188,15 @@ class Visitor extends BaseVisitor {
      * PREDICATES
      */
 
+    visitIsNullPredicate(ctx) {
+        const eq = { $eq: [this.visit(ctx.predicate(0)), null] }
+        if (ctx.nullNotnull().NOT()) {
+            return { $not: [ eq ]}
+        } else {
+            return eq
+        }
+    }
+
     // ! returns "expression"
     visitBinaryComparasionPredicate(ctx) {
         const operator = this.visit(ctx.comparisonOperator())
