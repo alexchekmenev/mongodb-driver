@@ -1,23 +1,8 @@
-const mysql = require('mysql');
 const { promisify } = require('util');
-const { reduce } = require('ramda');
-
-const { MongoClient, Logger } = require('mongodb')
+const { MongoClient } = require('mongodb')
 const BaseDriver = require('@cubejs-backend/query-orchestrator/driver/BaseDriver')
 const { query: execQuery } = require('../src/index')
 const MysqlQuery = require('@cubejs-backend/schema-compiler/adapter/MysqlQuery')
-
-// Logger.setLevel("error");
-//
-// const sortByKeys = (unordered) => {
-//     const ordered = {};
-//
-//     Object.keys(unordered).sort().forEach((key) => {
-//         ordered[key] = unordered[key];
-//     });
-//
-//     return ordered;
-// };
 
 class MongoDbDriver extends BaseDriver {
 
@@ -45,12 +30,9 @@ class MongoDbDriver extends BaseDriver {
     }
 
     async query(query, values) {
-        // console.log(query, values)
         await promisify(this.client.connect.bind(this.client))()
         const db = this.client.db(this.config.database)
-        const result = await execQuery(db, query, values)
-        // console.log(result)
-        return result
+        return execQuery(db, query, values)
     }
 
     async testConnection() {
@@ -66,50 +48,6 @@ class MongoDbDriver extends BaseDriver {
         console.log('[mongodb-driver]: release')
         return await this.client.close(true)
     }
-
-    // tablesSchema() {
-    //     const reduceCb = (result, i) => {
-    //         let schema = (result[i.table_schema] || {});
-    //         const tables = (schema[i.table_name] || []);
-    //
-    //         tables.push({ name: i.column_name, type: i.data_type, attributes: i.key_type ? ['primaryKey'] : [] });
-    //
-    //         tables.sort();
-    //         schema[i.table_name] = tables;
-    //         schema = sortByKeys(schema);
-    //         result[i.table_schema] = schema;
-    //
-    //         return sortByKeys(result);
-    //     };
-    //     const data = [
-    //         {
-    //             "COLUMN_NAME": "Donor ID",
-    //             "TABLE_NAME": "donors",
-    //             "TABLE_SCHEMA": "test",
-    //         },
-    //         {
-    //             "COLUMN_NAME": "Donor City",
-    //             "TABLE_NAME": "donors",
-    //             "TABLE_SCHEMA": "test",
-    //         },
-    //         {
-    //             "COLUMN_NAME": "Donor State",
-    //             "TABLE_NAME": "donors",
-    //             "TABLE_SCHEMA": "test",
-    //         },
-    //         {
-    //             "COLUMN_NAME": "Donor Is Teacher",
-    //             "TABLE_NAME": "donors",
-    //             "TABLE_SCHEMA": "test",
-    //         },
-    //         {
-    //             "COLUMN_NAME": "Donor Zip",
-    //             "TABLE_NAME": "donors",
-    //             "TABLE_SCHEMA": "test",
-    //         }
-    //     ];
-    //     return reduce(reduceCb, {}, data)
-    // }
 
     quoteIdentifier(identifier) {
         return `\`${identifier}\``;

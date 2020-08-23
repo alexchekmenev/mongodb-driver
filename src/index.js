@@ -1,4 +1,3 @@
-const {rewriteTableName} = require("./rewriters/CommonRewriter");
 const { parse } = require('./QueryParser')
 const { rewrite } = require('./QueryRewriter')
 
