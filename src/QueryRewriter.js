@@ -38,7 +38,6 @@ function rewrite(sqlQuery) {
     const orderContainer = rewriteOrder(sqlQuery.order, elementsByHash, selectContainer)
     const { groupStage, projectStage, sortStage} = constructStages(selectContainer, groupContainer, orderContainer)
 
-    // TODO switch $project and $sort stage
     pipeline.push({ $group: groupStage }, { $project: projectStage })
     if (sortStage) {
         pipeline.push({ $sort: sortStage })
@@ -59,7 +58,7 @@ function rewrite(sqlQuery) {
 // TODO GROUP BY `columnName`. now it's parsed as constant string
 // TODO ORDER BY `columnName` and alias (uid). now it's parsed as constant string
 function constructStages(selectContainer, groupContainer, orderContainer) {
-    const queryHasAggregations = true // TODO selectContainer.hasAggregationFunction()
+    const queryHasAggregations = selectContainer.hasAggregationFunction
 
     const groupIndex = { _id: queryHasAggregations ? null : "$_id" }
     const groupIndexHashIds = new Set()
@@ -83,9 +82,8 @@ function constructStages(selectContainer, groupContainer, orderContainer) {
             projectFields[projectingUid] = `$_id.<${selectElement.hashId}>`
         } else {
             let groupFieldValue = selectElement.compiled
-            if (queryHasAggregations /* &&  element is not aggregating function */) {
-                // TODO wrap select element without aggregating function  by { $first: ... }
-                // groupFieldValue = ...
+            if (queryHasAggregations && !selectElement.isAggregationFunction) {
+                groupFieldValue = { $first: selectElement.compiled }
             }
             groupFields[`<${selectElement.hashId}>`] = groupFieldValue
             projectFields[projectingUid] = `$<${selectElement.hashId}>`

@@ -2,6 +2,7 @@ class ElementContainer {
     constructor(elementsByHash) {
         this.elements = new Map()
         this.elementsByHash = elementsByHash
+        this.hasAggregationFunction = false
     }
 
     /**
@@ -11,6 +12,9 @@ class ElementContainer {
      */
     setElement(position, element) {
         this.elements.set(position, element)
+        if (element instanceof SelectElement) {
+            this.hasAggregationFunction |= element.isAggregationFunction
+        }
 
         const hash = element.getHash()
         if (!this.elementsByHash.has(hash)) {
@@ -41,8 +45,6 @@ class ElementContainer {
     get size() {
         return this.elements.size
     }
-
-    // TODO add hasAggregationFunction
 }
 
 class Element {
@@ -63,9 +65,9 @@ class Element {
 }
 
 class SelectElement extends Element {
-    constructor(raw, compiled, uid) {
+    constructor(raw, compiled, uid, isAggregationFunction = false) {
         super(raw, compiled, uid);
-        // TODO set "is aggregation function"
+        this.isAggregationFunction = isAggregationFunction
     }
 }
 

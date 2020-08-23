@@ -26,16 +26,17 @@ function rewrite(rawSelectElements, hashMap) {
  * @returns {SelectElement}
  */
 function rewriteSelectElement(rawElement) {
-    let compiled = null
+    let compiled = null, isAggregationFunction = false
     if (rawElement.hasOwnProperty('fullColumnName')) {
         compiled = rewriteColumnName(rawElement.fullColumnName)
     } else if (rawElement.hasOwnProperty('expression')) {
         compiled = rewriteExpression(rawElement.expression)
     } else if (rawElement.hasOwnProperty('functionCall')) {
-        compiled = rewriteExpression(rawElement.functionCall) // TODO detect aggregation function
+        isAggregationFunction = true
+        compiled = rewriteExpression(rawElement.functionCall)
     } else {
         throw new Error('Rewriter do not support this type of select element')
     }
     let uid = rawElement.uid || null
-    return new SelectElement(rawElement, compiled, uid) // TODO set aggregation function
+    return new SelectElement(rawElement, compiled, uid, isAggregationFunction)
 }

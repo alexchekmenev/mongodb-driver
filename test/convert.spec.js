@@ -159,8 +159,8 @@ describe('Convert SQL to MongoDB', () => {
                         "<2>": {
                             "$sum": 1
                         },
-                        "<3>": "$donors",
-                        "<4>": "$lol"
+                        "<3>": { "$first": "$donors" },
+                        "<4>": { "$first": "$lol" }
                     }
                 },
                 {
