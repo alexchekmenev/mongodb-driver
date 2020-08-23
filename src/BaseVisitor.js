@@ -2,22 +2,6 @@ const MySqlParserVisitor = require('./generated/MySqlParserVisitor').MySqlParser
 
 class BaseVisitor extends MySqlParserVisitor {
 
-    // visitChildren(ctx) {
-    //     if (!ctx) {
-    //         return;
-    //     }
-    //
-    //     if (ctx.children) {
-    //         return ctx.children.map(child => {
-    //             if (child.children && child.children.length != 0) {
-    //                 return child.accept(this);
-    //             } else {
-    //                 return child.getText();
-    //             }
-    //         });
-    //     }
-    // }
-
     // TODO restrict every query type but SELECT ...
 
     /**

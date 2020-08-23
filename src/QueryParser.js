@@ -18,8 +18,6 @@ function parse(input) {
     const parser = new MySqlParser(tokens)
     const parseTree = parser.sqlStatements()
 
-    console.log(parseTree.toStringTree(parser.ruleNames));
-
     return parseTree.accept(new Visitor())
 }
 

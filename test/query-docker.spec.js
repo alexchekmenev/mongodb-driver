@@ -1,9 +1,9 @@
 /* globals describe, afterAll, beforeAll, test, expect, jest */
-const { GenericContainer, Wait } = require("testcontainers");
-const { Duration, TemporalUnit } = require("node-duration");
+const { GenericContainer } = require("testcontainers");
 const MongoDbDriver = require('../driver/MongoDbDriver');
 
 const { populate } = require('./populate')
+const { queryTestCaseData } = require('./testCases')
 
 describe('Query method with Docker', () => {
   let container = null;
@@ -30,9 +30,6 @@ describe('Query method with Docker', () => {
 
     await mongoDbDriver.testConnection()
     await populate(config.database, config.port, config.user, config.password)
-    // await mySqlDriver.createSchemaIfNotExists('test');
-    // await mySqlDriver.query('DROP SCHEMA test');
-    // await mySqlDriver.createSchemaIfNotExists('test');
   });
 
   afterAll(async () => {
@@ -42,50 +39,11 @@ describe('Query method with Docker', () => {
     }
   });
 
-  test('get total count', async () => {
-      const result = await mongoDbDriver.query(`SELECT count(*) as total FROM donors`)
-      expect(result).toEqual([ { total: 2122640 } ])
-  })
+  for (const testCase of queryTestCaseData) {
+    test(testCase.name, async () => {
+      const result = await mongoDbDriver.query(testCase.sql, testCase.values || [])
+      expect(result).toEqual(testCase.result)
+    })
+  }
 
-  test('donors count by state', async () => {
-    const result = await mongoDbDriver.query(`
-    SELECT \`Donor State\` \`donors__donor_state\`,
-      count(*) \`donors__count\`
-    FROM
-      donors AS \`donors\`
-    GROUP BY
-      1
-    ORDER BY
-      2 DESC
-    LIMIT
-      10000`)
-
-  })
-
-  // test('truncated wrong value', async () => {
-  //   await mongoDbDriver.uploadTable(`test.wrong_value`, [{ name: 'value', type: 'string' }], {
-  //     rows: [{ value: "Tekirdağ" }]
-  //   });
-  //   expect(JSON.parse(JSON.stringify(await mongoDbDriver.query('select * from test.wrong_value'))))
-  //     .toStrictEqual([{ value: "Tekirdağ" }]);
-  //   expect(JSON.parse(JSON.stringify((await mongoDbDriver.downloadQueryResults('select * from test.wrong_value')).rows)))
-  //     .toStrictEqual([{ value: "Tekirdağ" }]);
-  // });
-  //
-  // test('boolean field', async () => {
-  //   await mongoDbDriver.uploadTable(`test.boolean`, [{ name: 'b_value', type: 'boolean' }], {
-  //     rows: [
-  //       { b_value: true },
-  //       { b_value: true },
-  //       { b_value: 'true' },
-  //       { b_value: false },
-  //       { b_value: 'false' },
-  //       { b_value: null }
-  //     ]
-  //   });
-  //   expect(JSON.parse(JSON.stringify(await mongoDbDriver.query('select * from test.boolean where b_value = ?', [true]))))
-  //     .toStrictEqual([{ b_value: 1 }, { b_value: 1 }, { b_value: 1 }]);
-  //   expect(JSON.parse(JSON.stringify(await mongoDbDriver.query('select * from test.boolean where b_value = ?', [false]))))
-  //     .toStrictEqual([{ b_value: 0 }, { b_value: 0 }]);
-  // });
 });
