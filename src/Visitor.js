@@ -214,8 +214,11 @@ class Visitor extends BaseVisitor {
     }
 
     visitNestedExpressionAtom(ctx) {
-        // throw new Error('Do not support nested expression atom')
-        return this.visit(ctx.expression())
+        const atoms = []
+        for (let i = 0; ctx.expression(i); i++) {
+            atoms.push(this.visit(ctx.expression(i)))
+        }
+        return atoms
     }
 
     visitBitExpressionAtom(ctx) {

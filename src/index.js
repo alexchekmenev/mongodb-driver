@@ -24,9 +24,9 @@ async function query(db, sqlQuery) {
  */
 function convert(sqlQuery) {
     const parsedSqlQuery = parse(sqlQuery)
-    console.log('SQL:', JSON.stringify(parsedSqlQuery, null, 2))
+    // console.log('SQL:', JSON.stringify(parsedSqlQuery, null, 2))
     const result = rewrite(parsedSqlQuery)
-    console.log('MongoDB:', JSON.stringify(result, null, 2))
+    // console.log('MongoDB:', JSON.stringify(result, null, 2))
     return result
 }
 

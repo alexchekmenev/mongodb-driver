@@ -8,7 +8,10 @@ function rewrite(where) {
     if (!where || !Object.keys(where).length) {
         return null
     }
+    if (Array.isArray(where)) {
+        where = where[0]
+    }
     return {
-        $expr: rewriteExpression(where)[0]
+        $expr: rewriteExpression(where)
     }
 }

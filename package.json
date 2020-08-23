@@ -15,9 +15,9 @@
   "scripts": {
     "generate": "chmod +x generate.sh && ./generate.sh",
     "run": "node driver/MongoDbDriver.js",
-    "test": "yarn lint && yarn test:unit && yarn test:e2e",
-    "test:unit": "jest",
-    "test:e2e": "jest",
+    "test": "yarn lint && yarn test:spec && yarn test:e2e",
+    "test:spec": "jest test/MongoDbDriver.spec.js",
+    "test:e2e": "jest test/MongoDbDriver.e2e.js",
     "lint": "eslint driver/*.js src/*.js test/*.js"
   },
   "dependencies": {
